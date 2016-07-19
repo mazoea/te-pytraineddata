@@ -11,7 +11,8 @@ before_install:
   - pip install nose coverage
   - sudo apt-get install -y libfreetype6-dev
   - sudo apt-get install -y zlib1g-dev
-  - sudo apt-get install -y libtiff5-dev
+  - #sudo apt-get install -y libtiff5-dev
+  - sudo apt-get install -y libtiff4-dev
   - sudo apt-get install -y libjpeg62-dev
   - sudo apt-get install -y libpng12-dev
   - sudo apt-get install -y python-dev python-openssl libffi-dev libffi6 
