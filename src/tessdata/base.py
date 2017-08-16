@@ -10,6 +10,7 @@
 """
 import logging
 from .utils import u_from_utf8
+from collections import defaultdict
 
 
 class base(object):
@@ -53,3 +54,21 @@ class base(object):
             self.name, error_msg, base.u(line)
         )
         return False
+
+
+class parts_mockup(object):
+
+    def __init__(self):
+        self._offsets = 13 * []
+
+    def get(self, key):
+        return defaultdict(dict)
+
+
+class fin_mockup(object):
+
+    def __init__(self, fin):
+        self._fin = fin
+
+    def get(self, key):
+        return defaultdict(dict)

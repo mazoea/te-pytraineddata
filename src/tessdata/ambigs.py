@@ -27,7 +27,8 @@ class ambigs(base):
         def validate(chars, s, e, l):
             while s < e:
                 token = chars[s]
-                self._assert(token in uniset, "used token not in unicharset", l)
+                self._assert(token in uniset,
+                             "used token not in unicharset", l)
                 s += 1
 
         version = -1
@@ -37,7 +38,8 @@ class ambigs(base):
                 if "v" == line[0]:
                     version = int(line[1:])
                     if 1 < version:
-                        self.warning("%s in a not supported format" % self.name)
+                        self.warning(
+                            "%s in a not supported format" % self.name)
                         return
                     continue
 
@@ -47,7 +49,7 @@ class ambigs(base):
                 "to": None,
             }
             parts = line.split()
-            if not self._assert( 1 != len(parts), "illegal ambiguity", line ):
+            if not self._assert(1 != len(parts), "illegal ambiguity", line):
                 continue
             try:
                 chars_len = int(parts[0])
@@ -78,9 +80,9 @@ class ambigs(base):
     def info(self, ftor, **kwargs):
         for msg in \
                 [u"%6s %5s -> %5s" % (
-                        u"always" if a["always"] else u"",
-                        self.u(a["from"]),
-                        self.u(a["to"]),
+                    u"always" if a["always"] else u"",
+                    self.u(a["from"]),
+                    self.u(a["to"]),
                 ) for a in self._v]:
             ftor(msg)
 

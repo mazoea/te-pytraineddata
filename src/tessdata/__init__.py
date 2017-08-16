@@ -25,6 +25,8 @@ from .normproto import normproto
 from .dawg import dawg
 from .base import base
 from _filereader import reader
+from .lstm import lstm
+from .version import version
 
 
 class noop(base):
@@ -44,6 +46,14 @@ class noop(base):
 
 class traineddata(object):
 
+    dawg_names = [
+        "punc_dawg",
+        "word_dawg",
+        "number_dawg",
+        "freq_dawg",
+        "fixed_length_dawg"
+    ]
+
     # ctor
     #
     def __init__(self, file_str, ftor_progress=None, ftor_warning=None):
@@ -55,11 +65,11 @@ class traineddata(object):
             inttemp(),
             pffmtable(),
             normproto(),
-            dawg("punc_dawg"),
-            dawg("system_dawg"),
-            dawg("number_dawg"),
-            dawg("freq_dawg"),
-            dawg("fixed_length_dawg"),
+            dawg(traineddata.dawg_names[0]),
+            dawg(traineddata.dawg_names[1]),
+            dawg(traineddata.dawg_names[2]),
+            dawg(traineddata.dawg_names[3]),
+            dawg(traineddata.dawg_names[4]),
             noop("cube_unicharset"),
             noop("cube_system_dawg"),
             #
@@ -67,6 +77,15 @@ class traineddata(object):
             dawg("bigram"),
             dawg("unambig"),
             noop("params model"),
+            #
+            lstm(),
+            noop("new dawg"),
+            noop("new dawg"),
+            noop("new dawg"),
+            unicharset(),
+            noop("recorder"),
+            version()
+
         )
         self._offsets = None
         self.input = file_str
@@ -94,8 +113,9 @@ class traineddata(object):
                 except:
                     pass
                 if 0 > start:
-                    _logger.info("traineddata does not contain [%s]", part.name)
+                    _logger.warn("traineddata does NOT CONTAIN [%s]", part.name)
                 else:
+                    _logger.warn("traineddata contains [%s]", part.name)
                     fin.seek(start)
                     try:
                         part.load(fin, start, end, self)
@@ -124,7 +144,7 @@ class traineddata(object):
     def info(self):
         _logger.debug("%s", self)
         for idx, part in enumerate(self.file_parts):
-            #if "inttemp" != part.name: continue
+            # if "inttemp" != part.name: continue
             _logger.info(10 * "=" + "\n%s\n" + 5 * "-", part.name)
             if part.present():
                 part.log_info()

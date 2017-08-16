@@ -8,10 +8,12 @@
 """
     Filereader
 """
+import os
 import struct
 
 
 class reader(object):
+    size_of_int8 = 1
     size_of_int16 = 2
     size_of_int32 = 4
     size_of_int64 = 8
@@ -21,6 +23,19 @@ class reader(object):
 
     def read_bytes(self, cnt):
         return self.f.read(cnt)
+
+    def read_string(self):
+        str_len = self.read_int4()
+        s = self.read_bytes(str_len)
+        return struct.unpack("%ds" % str_len, s)[0]
+
+    def read_char(self):
+        s = self.read_bytes(reader.size_of_int8)
+        return struct.unpack("c", s)[0]
+
+    def read_byte(self):
+        s = self.read_bytes(reader.size_of_int8)
+        return struct.unpack("b", s)[0]
 
     def read_int2(self):
         s = self.read_bytes(reader.size_of_int16)
@@ -64,3 +79,10 @@ class reader(object):
 
     def __exit__(self, type, value, traceback):
         self.f.close()
+
+    def size(self):
+        orig = self.f.tell()
+        self.f.seek(0, os.SEEK_END)
+        size = self.f.tell()
+        self.f.seek(orig, os.SEEK_SET)
+        return size

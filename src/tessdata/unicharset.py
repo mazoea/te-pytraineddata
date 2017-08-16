@@ -8,7 +8,8 @@
 """
     Set of recognisable characters
 """
-from .base import base
+from .base import base, parts_mockup
+from ._filereader import reader
 
 
 class unicharset(base):
@@ -29,7 +30,15 @@ class unicharset(base):
         from collections import OrderedDict
         self._v = OrderedDict()
 
-    def load(self, fin, start, end, parts):
+    @staticmethod
+    def load_from_file(filename):
+        inst = unicharset()
+        with open(filename, mode="r") as fin:
+            r = reader(filename)
+            inst.load(r, 0, r.size(), parts_mockup())
+        return inst
+
+    def load(self, fin, start, end, _parts):
         for pos, line in enumerate(fin.readlines(start, end)):
             if 0 == pos:
                 # read count

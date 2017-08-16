@@ -9,6 +9,9 @@
     Tesseract dawg.
 """
 from __future__ import print_function
+
+import codecs
+
 from .base import base
 from .unicharset import unicharset
 from . import _constants as tesseract
@@ -16,6 +19,7 @@ import math
 
 
 class dawg(base):
+
     def __init__(self, name):
         self.name = name
         self._v = []
@@ -59,6 +63,13 @@ class dawg(base):
     def print_words(self):
         self.iter_words(lambda i, w: print(w))
 
+    def save(self, out):
+        words = set()
+        self.iter_words(lambda i, w: words.add(w))
+        words = sorted(sorted(words), key=unicode.lower)
+        with codecs.open(out, mode="w+", encoding="utf-8") as fout:
+            fout.write("\n".join(words))
+
     #
     #
     def _iter(self, idx, word_part, arr_pos, ftor):
@@ -93,8 +104,10 @@ class tess_dawg(object):
         )
         self.next_node_start_bit = self.flag_start_bit + tesseract.NUM_FLAG_BITS
         self.letter_mask = ~(~0 << self.flag_start_bit)
-        self.next_node_mask = (~0 << (self.flag_start_bit + tesseract.NUM_FLAG_BITS)) & 0xffffffffffffffff
-        self.flags_mask = ~(self.letter_mask | self.next_node_mask) & 0xffffffffffffffff
+        self.next_node_mask = (
+            ~0 << (self.flag_start_bit + tesseract.NUM_FLAG_BITS)) & 0xffffffffffffffff
+        self.flags_mask = ~(self.letter_mask |
+                            self.next_node_mask) & 0xffffffffffffffff
 
     def idx2char(self, idx):
         """ Get character from unicharset based on its index. """

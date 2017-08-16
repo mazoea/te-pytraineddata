@@ -47,7 +47,8 @@ class normproto(base):
                 # st of bays, or a set of closures, or a set of microfeatures.  Each
                 # feature consists of a number of parameters.  All features within a
                 # feature set contain the same number of parameters.  All circular
-                # parameters are required to be the first parameters in the feature.
+                # parameters are required to be the first parameters in the
+                # feature.
                 parts = line.split()
                 if 'c' == parts[0][0]:
                     param["circular"] = True
@@ -97,7 +98,8 @@ class normproto(base):
                 parts = line.split()
 
                 if "spherical" == proto["style"]:
-                    self._assert(1 == len(parts), "invalid spherical definition", line)
+                    self._assert(1 == len(parts),
+                                 "invalid spherical definition", line)
                     proto["variance"] = float(parts[0])
                     proto["weight"] = 1.0 / proto["variance"]
 
@@ -107,7 +109,8 @@ class normproto(base):
 
                 elif "mixed" == proto["style"]:
                     # not really implemented
-                    self.warning("%s:mixed mode not really supported", self.name)
+                    self.warning(
+                        "%s:mixed mode not really supported", self.name)
                     proto["distributions"] = parts
                     pos += 1
                     line = lines[pos]
@@ -143,7 +146,8 @@ class normproto(base):
                     result = round(result, 3)
                 except NotImplementedError:
                     result = u"not implemented"
-                msg = u"sim = %7s comparing %s vs. %s in prototype #%d" % (result, self.u(unichar), self.u(k), i)
+                msg = u"sim = %7s comparing %s vs. %s in prototype #%d" % (
+                    result, self.u(unichar), self.u(k), i)
                 if verbose:
                     self.logger.info(msg)
                 if not isinstance(result, basestring):

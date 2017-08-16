@@ -8,7 +8,8 @@
 """
     Expected features count.
 """
-from .base import base
+from .base import base, parts_mockup
+from ._filereader import reader
 from .unicharset import unicharset
 
 
@@ -19,11 +20,22 @@ class pffmtable(base):
     def __init__(self):
         self._v = {}
 
+    def counts(self):
+        return self._v
+
+    @staticmethod
+    def load_from_file(filename):
+        inst = pffmtable()
+        with open(filename, mode="r") as fin:
+            r = reader(filename)
+            inst.load(r, 0, r.size(), parts_mockup())
+        return inst
+
     def load(self, fin, start, end, parts):
         uniset = parts.get(unicharset.name)
         if 13 < len(parts._offsets) and 0 < parts._offsets[13]:
             reserved1 = fin.read_int4()
-            shapetable_cutoffs = fin.read_struct(str(reserved1)+"H")
+            shapetable_cutoffs = fin.read_struct(str(reserved1) + "H")
             start = -1
 
         for pos, line in enumerate(fin.readlines(start, end)):

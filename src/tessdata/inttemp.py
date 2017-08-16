@@ -10,7 +10,8 @@
 """
 import math
 import os
-from .base import base
+from .base import base, parts_mockup
+from ._filereader import reader
 from . import _constants as tesseract
 from . import unicharset
 
@@ -43,6 +44,14 @@ class inttemp(base):
             "fonts": [],
             "fontsets": [],
         }
+
+    @staticmethod
+    def load_from_file(filename):
+        inst = inttemp()
+        with open(filename, mode="r") as fin:
+            r = reader(filename)
+            inst.load(r, 0, r.size(), parts_mockup())
+        return inst
 
     def load(self, fin, start, end, parts):
         self.uniset = parts.get(unicharset.name)
@@ -100,18 +109,21 @@ class inttemp(base):
             # length of XX for each of the prototype
             proto_lengths = []
             if 0 < cls.NumProtoSets:
-                proto_lengths = fin.read_struct(str(cls.NumProtoSets * tesseract.PROTOS_PER_PROTO_SET) + "B")
+                proto_lengths = fin.read_struct(
+                    str(cls.NumProtoSets * tesseract.PROTOS_PER_PROTO_SET) + "B")
             proto_sets = []
             for m in range(cls.NumProtoSets):
                 # read PROTO_SET_STRUCT
-                proto_pruner = fin.read_struct(str(tesseract.PROTO_PRUNER_SIZE) + "I")
+                proto_pruner = fin.read_struct(
+                    str(tesseract.PROTO_PRUNER_SIZE) + "I")
                 proto_set = {
                     "pruners": proto_pruner,
                     "protos": [],
                 }
                 for i in range(tesseract.PROTOS_PER_PROTO_SET):
                     p = fin.read_namedtuple("bBbB", struct_int_proto_struct)
-                    configs = fin.read_struct(str(tesseract.WERDS_PER_CONFIG_VEC) + "I")
+                    configs = fin.read_struct(
+                        str(tesseract.WERDS_PER_CONFIG_VEC) + "I")
                     proto_set["protos"].append({
                         "a": p.a,
                         "b": p.b,
@@ -147,7 +159,8 @@ class inttemp(base):
         if 5 <= self._v["version_id"]:
             reserved = fin.read_int4()
             size_used = fin.read_int4()
-            fontspacinginfo = namedtuple("fontspacinginfo", "x_gap_before x_gap_after kern_size")
+            fontspacinginfo = namedtuple(
+                "fontspacinginfo", "x_gap_before x_gap_after kern_size")
             for i in range(size_used):
                 vec_size = fin.read_int4()
                 for j in range(vec_size):
@@ -156,9 +169,10 @@ class inttemp(base):
                         continue
                     if 0 < fsi.kern_size:
                         reserved1 = fin.read_int4()
-                        kerned_unichar_ids = fin.read_struct(str(reserved1)+"i")
+                        kerned_unichar_ids = fin.read_struct(
+                            str(reserved1) + "i")
                         reserved2 = fin.read_int4()
-                        kerned_x_gaps = fin.read_struct(str(reserved2)+"H")
+                        kerned_x_gaps = fin.read_struct(str(reserved2) + "H")
                     self._v["fonts"][i]["spacing"].append(fsi)
 
         # v5
@@ -194,7 +208,6 @@ class inttemp(base):
                          spacing.x_gap_after,
                          spacing.kern_size)
 
-
         # newest version uses shapeid
         # ftor("fontsets:")
         # for i, fontset in enumerate(self._v["fontsets"]):
@@ -219,7 +232,8 @@ class inttemp(base):
                     for k, proto in enumerate(protos_classes["protos"]):
                         ftor(
                             "\t\t%3d. a:%4d b:%4d c:%4d angle:%4d configs:%s",
-                            k, proto["a"], proto["b"], proto["c"], proto["angle"],
+                            k, proto["a"], proto["b"], proto[
+                                "c"], proto["angle"],
                             " ".join(["%6s" % x for x in proto["configs"]])
                         )
 
@@ -258,7 +272,8 @@ class inttemp(base):
         for i, cls in enumerate(self._v["classes"]):
             c = self.u(self.uniset[i]["char"])
 
-            im = Image.frombytes('RGB', im_size, "\xff\xff\xff" * im_size[0] * im_size[1])
+            im = Image.frombytes(
+                'RGB', im_size, "\xff\xff\xff" * im_size[0] * im_size[1])
             draw = ImageDraw.Draw(im)
 
             success = False
@@ -275,7 +290,6 @@ class inttemp(base):
             def get_colour(bucket):
                 return colors[bucket] if bucket < len(colors) else (128, 128, 0)
 
-
             # display protos
             s = "Protos displayed: "
             for j, protoset in enumerate(cls["protosets"]):
@@ -291,14 +305,16 @@ class inttemp(base):
 
             # display expected features
             draw.text((10, font_size), s, (0, 0, 0), font=font)
-            s = "Expected features [%d]" % self.uniset[i].get("expected_features", -1)
+            s = "Expected features [%d]" % self.uniset[
+                i].get("expected_features", -1)
             draw.text((10, font_size * 2), s, (0, 0, 0), font=font)
 
             if success:
                 try:
                     yield (c, im, draw)
                 except Exception, e:
-                    self.logger.info(u"not showing prototype %s - %s", c, repr(e))
+                    self.logger.info(
+                        u"not showing prototype %s - %s", c, repr(e))
             else:
                 if 0 != i:
                     self.logger.info(u"not showing prototype for [%s]", c)
@@ -322,7 +338,7 @@ class inttemp(base):
 
         def get_pruner_word_index(pid):
             return (pid % tesseract.PROTOS_PER_PROTO_SET) \
-                   / tesseract.PROTOS_PER_PP_WERD
+                / tesseract.PROTOS_PER_PP_WERD
 
         proto_set = cls["protosets"][get_proto_set(proto_id)]
         protos = proto_set["protos"]
@@ -330,8 +346,8 @@ class inttemp(base):
             return False
         proto = protos[get_proto_idx(proto_id)]
         Length = cls["protolengths"][proto_id] * \
-                 tesseract.PICO_FEATURE_LENGTH * \
-                 tesseract.INT_CHAR_NORM_RANGE
+            tesseract.PICO_FEATURE_LENGTH * \
+            tesseract.INT_CHAR_NORM_RANGE
         proto_mask = get_pruner_mask(proto_id)
         proto_word_index = get_pruner_word_index(proto_id)
 
@@ -353,8 +369,10 @@ class inttemp(base):
 
         proto_pruner = proto_set["pruners"]
         for i in range(tesseract.NUM_PP_BUCKETS):
-            pp_x = get_proto_pruner(proto_pruner, tesseract.PRUNER_X, i, proto_word_index)
-            pp_y = get_proto_pruner(proto_pruner, tesseract.PRUNER_Y, i, proto_word_index)
+            pp_x = get_proto_pruner(
+                proto_pruner, tesseract.PRUNER_X, i, proto_word_index)
+            pp_y = get_proto_pruner(
+                proto_pruner, tesseract.PRUNER_Y, i, proto_word_index)
             if proto_mask & pp_x:
                 Xmin, Xmax = update_range(i, Xmin, Xmax)
             if proto_mask & pp_y:
@@ -362,8 +380,10 @@ class inttemp(base):
 
         X = (Xmin + Xmax + 1) / 2.0 * tesseract.PROTO_PRUNER_SCALE
         Y = (Ymin + Ymax + 1) / 2.0 * tesseract.PROTO_PRUNER_SCALE
-        Dx = (Length / 2.0) * math.cos((proto["angle"] / 256.0) * 2.0 * math.pi)
-        Dy = (Length / 2.0) * math.sin((proto["angle"] / 256.0) * 2.0 * math.pi)
+        Dx = (Length / 2.0) * \
+            math.cos((proto["angle"] / 256.0) * 2.0 * math.pi)
+        Dy = (Length / 2.0) * \
+            math.sin((proto["angle"] / 256.0) * 2.0 * math.pi)
 
         # different x,y base
         start = int(X - Dx), im_size[1] - int(Y - Dy)
