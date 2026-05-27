@@ -1,7 +1,12 @@
--   repo: git://github.com/pre-commit/mirrors-autopep8
-    sha: v1.3.1
+repos:
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v2.0.4
     hooks:
     -   id: autopep8
         args:
         - -i
         - --max-line-length=80
+-   repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+    -   id: gitleaks
